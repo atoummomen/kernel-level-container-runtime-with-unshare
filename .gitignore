@@ -1,0 +1,7 @@
+instances/
+*.tar.xz
+*.log
+*.pid
+
+images/*
+!images/.gitkeep
