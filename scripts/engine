@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -e
+
+ROOTFS="$(pwd)/instances/container1/rootfs"
+
+if [ "$1" != "run" ]; then
+    echo "Usage: sudo ./engine run <program> [args]"
+    exit 1
+fi
+
+shift
+
+sudo unshare --fork --pid --net --mount --uts --ipc --mount-proc bash -c "
+    set -e
+
+    mount --make-rprivate /
+
+    mount --bind $ROOTFS $ROOTFS
+    cd $ROOTFS
+    mkdir -p oldroot
+    pivot_root . oldroot
+    umount -l /oldroot
+    rmdir /oldroot
+
+    mount -t proc proc /proc
+    mount -t sysfs sys /sys
+    mount -t tmpfs tmpfs /tmp
+
+    hostname container1
+
+    exec \"$@\"
+"
